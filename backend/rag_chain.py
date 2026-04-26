@@ -14,7 +14,7 @@ PERSIST_DIRECTORY = os.path.join(VECTORSTORE_DIR, "chroma_db")
 MINIMAX_API_URL = os.environ.get("MINIMAX_API_URL", "")
 MINIMAX_API_KEY = os.environ.get("MINIMAX_API_KEY", "")
 MINIMAX_CHAT_MODEL = os.environ.get("MINIMAX_CHAT_MODEL", "MiniMax-M2.7")
-JINA_API_KEY = os.environ.get("JINA_API_KEY", "")
+SILICONFLOW_API_KEY = os.environ.get("SILICONFLOW_API_KEY", "")
 
 # 全局向量数据库实例
 vectorstore: Optional[Chroma] = None
@@ -79,19 +79,19 @@ async def stream_minimax(api_key: str, api_url: str, model: str, messages: list,
                         continue
 
 
-class JinaEmbeddings:
-    """Jina AI Embedding 封装"""
+class SiliconFlowEmbeddings:
+    """SiliconFlow Embedding 封装 - 国内可访问"""
 
     def __init__(self, api_key: str):
         self.api_key = api_key
-        self.api_url = "https://api.jina.ai/v1/embeddings"
+        self.api_url = "https://api.siliconflow.cn/v1/embeddings"
 
     def embed_documents(self, texts: List[str]) -> List[List[float]]:
         headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        data = {"model": "jina-embeddings-v3", "input": texts}
+        data = {"model": "BAAI/bge-m3", "input": texts}
         with httpx.Client(timeout=60.0) as client:
             response = client.post(
                 self.api_url,
@@ -113,7 +113,7 @@ def init_vectorstore():
     """初始化向量数据库"""
     global vectorstore, qa_chain
 
-    embeddings = JinaEmbeddings(api_key=JINA_API_KEY)
+    embeddings = SiliconFlowEmbeddings(api_key=SILICONFLOW_API_KEY)
 
     # 加载或创建向量数据库
     if os.path.exists(PERSIST_DIRECTORY):
@@ -183,7 +183,7 @@ def ingest_documents(docs_path: str = "/app/docs") -> dict:
     texts = text_splitter.split_documents(documents)
 
     # 嵌入并存储
-    embeddings = JinaEmbeddings(api_key=JINA_API_KEY)
+    embeddings = SiliconFlowEmbeddings(api_key=SILICONFLOW_API_KEY)
     vectorstore = Chroma.from_documents(
         documents=texts,
         embedding=embeddings,

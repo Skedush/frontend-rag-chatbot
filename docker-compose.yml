@@ -10,7 +10,7 @@ services:
       - MINIMAX_API_KEY=${MINIMAX_API_KEY}
       - MINIMAX_API_URL=${MINIMAX_API_URL}
       - MINIMAX_CHAT_MODEL=${MINIMAX_CHAT_MODEL:-MiniMax-M2.7}
-      - JINA_API_KEY=${JINA_API_KEY}
+      - SILICONFLOW_API_KEY=${SILICONFLOW_API_KEY}
       - VECTORSTORE_DIR=/app/vectorstore
       - UPLOAD_DIR=/app/docs
       # - HTTP_PROXY=http://host.docker.internal:7890
