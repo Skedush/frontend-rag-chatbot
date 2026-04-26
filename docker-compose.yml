@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: rag-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - MINIMAX_API_KEY=${MINIMAX_API_KEY}
+      - MINIMAX_API_URL=${MINIMAX_API_URL}
+      - MINIMAX_CHAT_MODEL=${MINIMAX_CHAT_MODEL:-MiniMax-M2.7}
+      - JINA_API_KEY=${JINA_API_KEY}
+      - VECTORSTORE_DIR=/app/vectorstore
+      - UPLOAD_DIR=/app/docs
+      # - HTTP_PROXY=http://host.docker.internal:7890
+      # - HTTPS_PROXY=http://host.docker.internal:7890
+      # - NO_PROXY=localhost,127.0.0.1
+    volumes:
+      - ./docs:/app/docs
+      - ./vectorstore:/app/vectorstore
+    restart: unless-stopped
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: rag-frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
