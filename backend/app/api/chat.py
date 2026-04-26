@@ -5,13 +5,11 @@
 流式问答接口
 """
 
-import json
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
 
-from app.models.schemas import ChatRequest, SourceDocument
+from app.models.schemas import ChatRequest
 from app.services import get_vectorstore_service, get_llm_service, PromptBuilder
-from app.utils import logger
+from app.utils import logger, create_sse_response, sse_content, sse_sources, sse_error, sse_done, format_source_documents
 
 router = APIRouter(prefix="/api", tags=["chat"])
 
@@ -42,29 +40,14 @@ async def chat(request: ChatRequest):
         try:
             llm = get_llm_service()
             async for chunk in llm.chat(messages):
-                yield f"data: {json.dumps({'content': chunk})}\n\n"
+                yield await sse_content(chunk)
 
             # 返回来源文档
-            sources = [
-                {
-                    "content": doc.page_content[:200] + "..." if len(doc.page_content) > 200 else doc.page_content,
-                    "metadata": doc.metadata
-                }
-                for doc in docs
-            ]
-            yield f"data: {json.dumps({'sources': sources})}\n\n"
-            yield "data: [DONE]\n\n"
+            yield await sse_sources(format_source_documents(docs))
+            yield await sse_done()
 
         except Exception as e:
             logger.error(f"Chat error: {e}")
-            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            yield await sse_error(str(e))
 
-    return StreamingResponse(
-        generate(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no"
-        }
-    )
+    return create_sse_response(generate())
