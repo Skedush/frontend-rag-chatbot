@@ -7,6 +7,7 @@
 
 import json
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 
 from app.models.schemas import ChatRequest, SourceDocument
 from app.services import get_vectorstore_service, get_llm_service, PromptBuilder
@@ -58,4 +59,12 @@ async def chat(request: ChatRequest):
             logger.error(f"Chat error: {e}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    return generate()
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no"
+        }
+    )
