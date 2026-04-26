@@ -1,9 +1,11 @@
+version: '3.8'
+
 services:
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    container_name: rag-backend
+      dockerfile: Dockerfile.dev
+    container_name: rag-backend-dev
     ports:
       - "8000:8000"
     environment:
@@ -13,34 +15,40 @@ services:
       - SILICONFLOW_API_KEY=${SILICONFLOW_API_KEY}
       - VECTORSTORE_DIR=/app/vectorstore
       - UPLOAD_DIR=/app/docs
-      # - HTTP_PROXY=http://host.docker.internal:7890
-      # - HTTPS_PROXY=http://host.docker.internal:7890
-      # - NO_PROXY=localhost,127.0.0.1
     volumes:
+      - ./backend:/app
       - ./docs:/app/docs
       - ./vectorstore:/app/vectorstore
     restart: unless-stopped
-    # extra_hosts:
-    #   - "host.docker.internal:host-gateway"
 
-  frontend:
+  frontend-react:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
-    container_name: rag-frontend
+      dockerfile: Dockerfile.dev
+    container_name: rag-frontend-dev
     ports:
-      - "5173:80"
+      - "5173:5173"
     depends_on:
       - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_TARGET=http://backend:8000
     restart: unless-stopped
 
-  vue-frontend:
+  frontend-vue:
     build:
       context: ./vue-frontend
-      dockerfile: Dockerfile
-    container_name: rag-vue-frontend
+      dockerfile: Dockerfile.dev
+    container_name: rag-vue-frontend-dev
     ports:
-      - "3000:80"
+      - "3000:5173"
     depends_on:
       - backend
+    volumes:
+      - ./vue-frontend:/app
+      - /app/node_modules
+    environment:
+      - VITE_API_TARGET=http://backend:8000
     restart: unless-stopped

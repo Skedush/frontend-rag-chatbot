@@ -2,3 +2,23 @@
 node_modules/
 dist/
 .DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.pytest_cache/
+
+# Data (不需要版本控制)
+vectorstore/
+docs/
+chroma_data/
+
+# pnpm
+**/.pnpm-store/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo

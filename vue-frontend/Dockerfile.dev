@@ -1,0 +1,10 @@
+# Vue Frontend 开发环境 Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@9.0.0 --activate
+COPY package.json ./
+RUN pnpm install
+COPY . .
+
+CMD ["pnpm", "run", "dev", "--", "--host", "0.0.0.0"]

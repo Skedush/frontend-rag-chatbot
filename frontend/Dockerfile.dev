@@ -1,0 +1,10 @@
+# React Frontend 开发环境 Dockerfile
+FROM node:18-alpine
+
+WORKDIR /app
+RUN npm install -g pnpm
+COPY package.json ./
+RUN pnpm install
+COPY . .
+
+CMD ["pnpm", "run", "dev", "--", "--host", "0.0.0.0"]
