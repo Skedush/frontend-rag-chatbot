@@ -94,12 +94,18 @@ async def chat(request: ChatRequest):
 
     # 2. 构建上下文
     context = "\n\n".join([doc.page_content for doc in docs])
-    system_prompt = """你是一个问答助手。请基于提供的参考文档回答用户问题。
-如果参考文档包含与问题相关的内容，请优先基于这些内容回答。
-如果参考文档信息不足或不相关，可以结合你的自身知识来补充回答。
+    if context:
+        system_prompt = f"""你是一个友好的问答助手。当用户提问时：
+1. 首先查看参考文档是否包含相关信息
+2. 如果参考文档有相关信息，请基于文档回答
+3. 如果参考文档没有或几乎没有相关信息，请使用你自己的知识来回答用户问题
 
-参考文档：
-""" + context
+参考文档内容：
+{context}
+
+请直接回答用户问题，不需要特别说明你使用了哪个来源。"""
+    else:
+        system_prompt = "你是一个友好的问答助手，请直接回答用户的问题。"
 
     # 3. 流式返回 MiniMax 的响应
     async def generate():
